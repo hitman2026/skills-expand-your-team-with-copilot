@@ -536,10 +536,24 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // Create difficulty badge (only if difficulty is set)
-    const difficultyBadge = details.difficulty ? `
-      <span class="difficulty-badge difficulty-${details.difficulty.toLowerCase()}">
-        ${details.difficulty}
+    // Sanitize difficulty value to prevent XSS
+    const sanitizeDifficulty = (diff) => {
+      const allowedLevels = ['Beginner', 'Intermediate', 'Advanced'];
+      return allowedLevels.includes(diff) ? diff : '';
+    };
+    
+    const difficultyBadge = details.difficulty && sanitizeDifficulty(details.difficulty) ? `
+      <span class="difficulty-badge difficulty-${sanitizeDifficulty(details.difficulty).toLowerCase()}">
+        ${sanitizeDifficulty(details.difficulty)}
       </span>
+    ` : '';
+
+    // Create activity header wrapper (only if we have tags or badges to show)
+    const activityHeader = (tagHtml || difficultyBadge) ? `
+      <div class="activity-header">
+        ${tagHtml}
+        ${difficultyBadge}
+      </div>
     ` : '';
 
     // Create capacity indicator
@@ -556,10 +570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     activityCard.innerHTML = `
-      <div class="activity-header">
-        ${tagHtml}
-        ${difficultyBadge}
-      </div>
+      ${activityHeader}
       <h4>${name}</h4>
       <p>${details.description}</p>
       <p class="tooltip">
