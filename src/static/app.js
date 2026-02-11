@@ -896,7 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function shareOnFacebook(activityName, description) {
     const url = encodeURIComponent(window.location.href);
     const text = encodeURIComponent(
-      `Check out ${activityName} at Mergington High School!`
+      `Check out ${activityName} at Mergington High School! ${description}`
     );
     const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
@@ -936,12 +936,19 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(() => {
           showMessage("Link copied to clipboard!", "success");
           // Visual feedback on the button
-          const btn = event.target;
-          const originalText = btn.textContent;
-          btn.textContent = "✓";
-          setTimeout(() => {
-            btn.textContent = originalText;
-          }, 1000);
+          try {
+            const btn = event.currentTarget;
+            if (btn) {
+              const originalText = btn.textContent;
+              btn.textContent = "✓";
+              setTimeout(() => {
+                btn.textContent = originalText;
+              }, 1000);
+            }
+          } catch (e) {
+            // If button feedback fails, it's okay - the message already shows success
+            console.log("Button feedback skipped");
+          }
         })
         .catch((err) => {
           console.error("Failed to copy:", err);
