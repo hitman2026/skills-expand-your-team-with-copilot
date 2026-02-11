@@ -523,16 +523,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const shareButtons = `
       <div class="share-buttons">
         <span class="share-label">Share:</span>
-        <button class="share-btn share-facebook" data-activity="${name}" title="Share on Facebook">
+        <button class="share-btn share-facebook" title="Share on Facebook">
           📘
         </button>
-        <button class="share-btn share-twitter" data-activity="${name}" title="Share on Twitter">
+        <button class="share-btn share-twitter" title="Share on Twitter">
           🐦
         </button>
-        <button class="share-btn share-email" data-activity="${name}" title="Share via Email">
+        <button class="share-btn share-email" title="Share via Email">
           📧
         </button>
-        <button class="share-btn share-copy" data-activity="${name}" title="Copy Link">
+        <button class="share-btn share-copy" title="Copy Link">
           📋
         </button>
       </div>
@@ -894,7 +894,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Social Sharing Functions
   function shareOnFacebook(activityName, description) {
-    const url = encodeURIComponent(window.location.href);
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = encodeURIComponent(`${baseUrl}#${activityHash}`);
     const text = encodeURIComponent(
       `Check out ${activityName} at Mergington High School! ${description}`
     );
@@ -903,7 +905,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function shareOnTwitter(activityName, description) {
-    const url = encodeURIComponent(window.location.href);
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = encodeURIComponent(`${baseUrl}#${activityHash}`);
     const text = encodeURIComponent(
       `Join ${activityName} at Mergington High School! ${description}`
     );
@@ -912,6 +916,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function shareViaEmail(activityName, description, schedule) {
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = `${baseUrl}#${activityHash}`;
     const subject = encodeURIComponent(
       `Check out ${activityName} at Mergington High School`
     );
@@ -920,14 +927,16 @@ document.addEventListener("DOMContentLoaded", () => {
         `Activity: ${activityName}\n` +
         `Description: ${description}\n` +
         `Schedule: ${schedule}\n\n` +
-        `Learn more at: ${window.location.href}\n\n` +
+        `Learn more at: ${url}\n\n` +
         `Best regards`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   }
 
   function copyActivityLink(activityName, event) {
-    const url = window.location.href;
+    const activityHash = activityName.replace(/\s+/g, '-').toLowerCase();
+    const baseUrl = window.location.href.split('#')[0];
+    const url = `${baseUrl}#${activityHash}`;
     
     // Use the Clipboard API if available
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -947,7 +956,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           } catch (e) {
             // If button feedback fails, it's okay - the message already shows success
-            console.log("Button feedback skipped");
+            console.warn("Button feedback skipped:", e);
           }
         })
         .catch((err) => {
