@@ -595,6 +595,25 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Create share buttons
+    const shareButtons = `
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <button class="share-btn share-facebook" title="Share on Facebook">
+          📘
+        </button>
+        <button class="share-btn share-twitter" title="Share on Twitter">
+          🐦
+        </button>
+        <button class="share-btn share-email" title="Share via Email">
+          📧
+        </button>
+        <button class="share-btn share-copy" title="Copy Link">
+          📋
+        </button>
+      </div>
+    `;
+
     activityCard.innerHTML = `
       ${activityHeader}
       <h4>${name}</h4>
@@ -604,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="tooltip-text">Regular meetings at this time throughout the semester</span>
       </p>
       ${capacityIndicator}
+      ${shareButtons}
       <div class="participants-list">
         <h5>Current Participants:</h5>
         <ul>
@@ -662,6 +682,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    const shareFacebookBtn = activityCard.querySelector(".share-facebook");
+    const shareTwitterBtn = activityCard.querySelector(".share-twitter");
+    const shareEmailBtn = activityCard.querySelector(".share-email");
+    const shareCopyBtn = activityCard.querySelector(".share-copy");
+
+    shareFacebookBtn.addEventListener("click", () =>
+      shareOnFacebook(name, details.description)
+    );
+    shareTwitterBtn.addEventListener("click", () =>
+      shareOnTwitter(name, details.description)
+    );
+    shareEmailBtn.addEventListener("click", () =>
+      shareViaEmail(name, details.description, formattedSchedule)
+    );
+    shareCopyBtn.addEventListener("click", (e) => copyActivityLink(name, e));
 
     activitiesList.appendChild(activityCard);
   }
@@ -943,6 +980,109 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error signing up:", error);
     }
   });
+
+  // Social Sharing Functions
+  function shareOnFacebook(activityName, description) {
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = encodeURIComponent(`${baseUrl}#${activityHash}`);
+    const text = encodeURIComponent(
+      `Check out ${activityName} at Mergington High School! ${description}`
+    );
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  }
+
+  function shareOnTwitter(activityName, description) {
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = encodeURIComponent(`${baseUrl}#${activityHash}`);
+    const text = encodeURIComponent(
+      `Join ${activityName} at Mergington High School! ${description}`
+    );
+    const shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  }
+
+  function shareViaEmail(activityName, description, schedule) {
+    const activityHash = encodeURIComponent(activityName.replace(/\s+/g, '-').toLowerCase());
+    const baseUrl = window.location.href.split('#')[0];
+    const url = `${baseUrl}#${activityHash}`;
+    const subject = encodeURIComponent(
+      `Check out ${activityName} at Mergington High School`
+    );
+    const body = encodeURIComponent(
+      `Hi,\n\nI wanted to share this great activity with you:\n\n` +
+        `Activity: ${activityName}\n` +
+        `Description: ${description}\n` +
+        `Schedule: ${schedule}\n\n` +
+        `Learn more at: ${url}\n\n` +
+        `Best regards`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
+
+  function copyActivityLink(activityName, event) {
+    const activityHash = activityName.replace(/\s+/g, '-').toLowerCase();
+    const baseUrl = window.location.href.split('#')[0];
+    const url = `${baseUrl}#${activityHash}`;
+    
+    // Use the Clipboard API if available
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          showMessage("Link copied to clipboard!", "success");
+          // Visual feedback on the button
+          try {
+            const btn = event.currentTarget;
+            if (btn) {
+              const originalText = btn.textContent;
+              btn.textContent = "✓";
+              setTimeout(() => {
+                btn.textContent = originalText;
+              }, 1000);
+            }
+          } catch (e) {
+            // If button feedback fails, it's okay - the message already shows success
+            console.warn("Button feedback skipped:", e);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to copy:", err);
+          fallbackCopyTextToClipboard(url);
+        });
+    } else {
+      // Fallback for older browsers
+      fallbackCopyTextToClipboard(url);
+    }
+  }
+
+  function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        showMessage("Link copied to clipboard!", "success");
+      } else {
+        showMessage("Failed to copy link", "error");
+      }
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      showMessage("Failed to copy link", "error");
+    }
+
+    document.body.removeChild(textArea);
+  }
 
   // Expose filter functions to window for future UI control
   window.activityFilters = {
